@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bulk Email Sender</title>
+  <meta name="description" content="Sende E-Mails sicher an mehrere Empfänger – alle Adressen bleiben privat via BCC.">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.3s ease-in-out',
+            'slide-up': 'slideUp 0.4s ease-out',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { opacity: '0', transform: 'translateY(12px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    textarea::-webkit-scrollbar { width: 8px; }
+    textarea::-webkit-scrollbar-track { @apply bg-gray-100 rounded-full; }
+    textarea::-webkit-scrollbar-thumb { @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors; }
+    input:focus, textarea:focus { @apply ring-2 ring-black/20 outline-none; }
+    body { @apply bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen text-gray-900; }
+  </style>
+</head>
+<body class="antialiased">
+  <main class="min-h-screen flex items-center justify-center p-4 md:p-6">
+    <div class="w-full max-w-2xl animate-slide-up">
+      
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-black text-white mb-4 shadow-lg mx-auto">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+          </svg>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Bulk Email Sender</h1>
+        <p class="text-gray-600">Sende E-Mails sicher – alle Empfänger bleiben privat</p>
+      </div>
+
+      <!-- Form Card -->
+      <form id="emailForm" class="bg-white rounded-3xl shadow-xl p-6 md:p-8 space-y-6">
+        
+        <!-- Email Addresses -->
+        <div>
+          <label for="emails" class="block text-sm font-semibold text-gray-700 mb-2">
+            Empfänger-E-Mails <span class="text-gray-400 font-normal">(eine pro Zeile)</span>
+          </label>
+          <textarea
+            id="emails"
+            rows="5"
+            placeholder="max.mustermann@example.com&#10;anna.schmidt@example.org&#10;john.doe@example.net"
+            class="w-full px-4 py-3.5 rounded-2xl border border-gray-200 focus:border-black transition-all resize-none text-gray-900 placeholder-gray-400 bg-gray-50 focus:bg-white"
+          ></textarea>
+          <p id="emailCount" class="mt-1.5 text-sm text-gray-500 hidden"></p>
+        </div>
+
+        <!-- Subject -->
+        <div>
+          <label for="subject" class="block text-sm font-semibold text-gray-700 mb-2">Betreff</label>
+          <input
+            id="subject"
+            type="text"
+            placeholder="Dein Betreff hier..."
+            class="w-full px-4 py-3.5 rounded-2xl border border-gray-200 focus:border-black transition-all text-gray-900 placeholder-gray-400 bg-gray-50 focus:bg-white"
+          />
+        </div>
+
+        <!-- Message -->
+        <div>
+          <label for="message" class="block text-sm font-semibold text-gray-700 mb-2">Nachricht</label>
+          <textarea
+            id="message"
+            rows="6"
+            placeholder="Schreibe deine Nachricht hier..."
+            class="w-full px-4 py-3.5 rounded-2xl border border-gray-200 focus:border-black transition-all resize-none text-gray-900 placeholder-gray-400 bg-gray-50 focus:bg-white"
+          ></textarea>
+        </div>
+
+        <!-- Status Messages -->
+        <div id="status" class="hidden p-4 rounded-2xl text-sm font-medium animate-fade-in" role="alert"></div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          id="submitBtn"
+          class="w-full py-4 px-6 bg-black text-white font-semibold rounded-2xl hover:bg-gray-900 focus:ring-4 focus:ring-black/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+          </svg>
+          <span id="btnText">E-Mails senden</span>
+        </button>
+      </form>
+
+      <!-- Privacy Notice -->
+      <div class="mt-6 text-center">
+        <p class="text-xs text-gray-500 leading-relaxed">
+          🔒 <strong>Datenschutz:</strong> Alle Empfänger werden ausschließlich über <strong>BCC</strong> versendet. 
+          Keine E-Mail-Adresse ist für andere Empfänger sichtbar – auch nicht in E-Mail-Clients über „Details anzeigen" oder „Mehr". 
+          Wir speichern keine E-Mail-Adressen oder Nachrichteninhalte.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <footer class="mt-10 text-center text-xs text-gray-400">
+        <p>Built with ❤️ • Hosted on GitHub Pages</p>
+      </footer>
+    </div>
+  </main>
+
+  <!-- App Logic -->
+  <script>
+    // ⚙️ KONFIGURATION: Hier deinen API-Endpoint eintragen
+    // Für Produktion: Eigenen Serverless-Endpoint nutzen (siehe Hinweis unten)
+    const API_ENDPOINT = 'https://dein-vercel-endpoint.vercel.app/api/send' // ← HIER ANPASSEN!
+
+    const form = document.getElementById('emailForm')
+    const emailsInput = document.getElementById('emails')
+    const subjectInput = document.getElementById('subject')
+    const messageInput = document.getElementById('message')
+    const statusEl = document.getElementById('status')
+    const submitBtn = document.getElementById('submitBtn')
+    const btnText = document.getElementById('btnText')
+    const emailCountEl = document.getElementById('emailCount')
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+    const parseEmails = (input) => {
+      return input
+        .split('\n')
+        .map(e => e.trim())
+        .filter(e => e && emailRegex.test(e))
+    }
+
+    // Live-Email-Count-Update
+    emailsInput.addEventListener('input', () => {
+      const valid = parseEmails(emailsInput.value)
+      if (valid.length > 0) {
+        emailCountEl.textContent = `✅ ${valid.length} gültige${valid.length !== 1 ? ' Adressen' : ' Adresse'} erkannt`
+        emailCountEl.classList.remove('hidden')
+      } else {
+        emailCountEl.classList.add('hidden')
+      }
+    })
+
+    const showStatus = (type, text) => {
+      statusEl.className = `p-4 rounded-2xl text-sm font-medium animate-fade-in ${
+        type === 'success' 
+          ? 'bg-green-50 text-green-800 border border-green-200' 
+          : 'bg-red-50 text-red-800 border border-red-200'
+      }`
+      statusEl.textContent = text
+      statusEl.classList.remove('hidden')
+    }
+
+    const setLoading = (loading) => {
+      submitBtn.disabled = loading
+      btnText.textContent = loading ? 'Wird gesendet...' : 'E-Mails senden'
+      if (loading) {
+        btnText.parentElement.innerHTML = `
+          <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Wird gesendet...</span>
+        `
+      } else {
+        btnText.parentElement.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+          </svg>
+          <span>E-Mails senden</span>
+        `
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      statusEl.classList.add('hidden')
+
+      const validEmails = parseEmails(emailsInput.value)
+      const subject = subjectInput.value.trim()
+      const message = messageInput.value.trim()
+
+      // Validation
+      if (validEmails.length === 0) {
+        showStatus('error', 'Bitte mindestens eine gültige E-Mail-Adresse eingeben.')
+        return
+      }
+      if (!subject) {
+        showStatus('error', 'Bitte einen Betreff eingeben.')
+        return
+      }
+      if (!message) {
+        showStatus('error', 'Bitte eine Nachricht eingeben.')
+        return
+      }
+      if (validEmails.length > 50) {
+        showStatus('error', 'Maximal 50 Empfänger pro Sendung erlaubt.')
+        return
+      }
+
+      setLoading(true)
+
+      try {
+        const response = await fetch(API_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            emails: validEmails,
+            subject,
+            message,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Beim Senden ist ein Fehler aufgetreten.')
+        }
+
+        showStatus('success', `✅ E-Mail erfolgreich an ${data.recipientCount} Empfänger gesendet!`)
+        emailsInput.value = ''
+        subjectInput.value = ''
+        messageInput.value = ''
+        emailCountEl.classList.add('hidden')
+      } catch (err) {
+        showStatus('error', err.message)
+      } finally {
+        setLoading(false)
+      }
+    })
+  </script>
+</body>
+</html>
